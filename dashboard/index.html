@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuaGou Mall E-Commerce Analytics Dashboard</title>
+  <link rel="stylesheet" href="static/css/style.css">
+  <!-- Plotly.js CDN -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-logo">华</div>
+      <div class="brand-info">
+        <h1>
+          HuaGou Mall Analytics
+          <span class="brand-tag">Portfolio Project 1</span>
+        </h1>
+        <div class="brand-subtitle">Synthetic E-Commerce Dataset (China Market · CNY ¥ · 2024–2025)</div>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <div class="meta-badge">
+        <span class="dot"></span>
+        <span>60,000 Lines · 31,804 Orders</span>
+      </div>
+      <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light / Dark Mode">
+        <span class="icon" id="themeIcon">🌙</span>
+        <span id="themeLabel">Dark Mode</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="dashboard-container">
+
+    <!-- Global Filter Toolbar -->
+    <section class="filter-toolbar">
+      <div class="filter-header">
+        <div class="filter-title">
+          <span>⚡ Interactive Data Filters</span>
+        </div>
+        <div class="filter-summary" id="filterCountBadge">Default: Realized Completed</div>
+      </div>
+
+      <div class="filter-controls-grid" id="filterForm">
+        <div class="filter-group">
+          <label for="filterYear">Calendar Year</label>
+          <select id="filterYear">
+            <option value="all">All (2024 – 2025)</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filterStatus">Order Status</label>
+          <select id="filterStatus">
+            <option value="Completed" selected>Completed (Realized)</option>
+            <option value="all">All Statuses (Gross View)</option>
+            <option value="Cancelled">Cancelled</option>
+            <option value="Returned">Returned</option>
+            <option value="Processing">Processing</option>
+            <option value="Awaiting Shipment">Awaiting Shipment</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filterCategory">Product Category</label>
+          <select id="filterCategory">
+            <option value="all">All 8 Categories</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filterChannel">Sales Channel</label>
+          <select id="filterChannel">
+            <option value="all">All 4 Channels</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filterSegment">Customer Tier</label>
+          <select id="filterSegment">
+            <option value="all">All Segments</option>
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn btn-secondary" id="resetFiltersBtn">↺ Reset Filters</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top KPI Cards Grid -->
+    <section class="kpi-grid">
+      <!-- KPI 1: Realized Revenue -->
+      <div class="kpi-card teal">
+        <div class="kpi-header">
+          <span class="kpi-title">Revenue</span>
+          <span class="kpi-icon">💰</span>
+        </div>
+        <div class="kpi-value-row">
+          <span class="kpi-value" id="kpiRevenue">¥18.22M</span>
+        </div>
+        <div class="kpi-subtext" id="kpiRevenueSub">Realized completed sales</div>
+      </div>
+
+      <!-- KPI 2: Gross Profit & Margin -->
+      <div class="kpi-card emerald">
+        <div class="kpi-header">
+          <span class="kpi-title">Gross Profit & Margin</span>
+          <span class="kpi-icon">📈</span>
+        </div>
+        <div class="kpi-value-row">
+          <span class="kpi-value" id="kpiProfit">¥4.51M</span>
+        </div>
+        <div class="kpi-subtext" id="kpiProfitSub">
+          <span class="badge badge-emerald">24.74% margin</span>
+        </div>
+      </div>
+
+      <!-- KPI 3: Orders & Order Lines -->
+      <div class="kpi-card amber">
+        <div class="kpi-header">
+          <span class="kpi-title">Completed Orders</span>
+          <span class="kpi-icon">📦</span>
+        </div>
+        <div class="kpi-value-row">
+          <span class="kpi-value" id="kpiOrders">27,826</span>
+        </div>
+        <div class="kpi-subtext" id="kpiOrdersSub">52,445 lines (~1.89 / order)</div>
+      </div>
+
+      <!-- KPI 4: Average Order Value (AOV) -->
+      <div class="kpi-card purple">
+        <div class="kpi-header">
+          <span class="kpi-title">Avg Order Value (AOV)</span>
+          <span class="kpi-icon">🛒</span>
+        </div>
+        <div class="kpi-value-row">
+          <span class="kpi-value" id="kpiAOV">¥654.89</span>
+        </div>
+        <div class="kpi-subtext" id="kpiAOVSub">Revenue per order</div>
+      </div>
+
+      <!-- KPI 5: Loss-Making Line Exposure -->
+      <div class="kpi-card rose">
+        <div class="kpi-header">
+          <span class="kpi-title">Loss Lines (>30% Disc)</span>
+          <span class="kpi-icon">⚠️</span>
+        </div>
+        <div class="kpi-value-row">
+          <span class="kpi-value" id="kpiLoss">8.18%</span>
+        </div>
+        <div class="kpi-subtext" id="kpiLossSub">
+          <span class="badge badge-rose">4,037 loss lines</span>
+        </div>
+      </div>
+
+      <!-- KPI 6: Customer CSAT -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Customer CSAT</span>
+          <span class="kpi-icon">⭐</span>
+        </div>
+        <div class="kpi-value-row">
+          <span class="kpi-value" id="kpiCSAT">★ 4.02 / 5.0</span>
+        </div>
+        <div class="kpi-subtext">15,000 Unique Customers</div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs-navigation">
+      <button class="tab-btn active" data-tab="overview">
+        <span>📌 Executive Overview</span>
+        <span class="tab-count">3 Charts</span>
+      </button>
+      <button class="tab-btn" data-tab="distribution">
+        <span>📊 Distributions</span>
+        <span class="tab-count">Charts 1–4</span>
+      </button>
+      <button class="tab-btn" data-tab="relationships">
+        <span>🔍 Relationships & Profit</span>
+        <span class="tab-count">Charts 5–7</span>
+      </button>
+      <button class="tab-btn" data-tab="composition">
+        <span>🧩 Composition & Heatmap</span>
+        <span class="tab-count">Charts 8–9</span>
+      </button>
+      <button class="tab-btn" data-tab="insights">
+        <span>💡 Strategic Insights</span>
+        <span class="tab-count">9 Reports</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: EXECUTIVE OVERVIEW -->
+    <section class="tab-content active" id="tab-overview">
+      <!-- 24-Month Revenue & Profit Timeline -->
+      <div class="charts-grid-1">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-area">
+              <h3>📈 24-Month Realized Revenue & Gross Profit Trend</h3>
+              <div class="chart-subtitle">Monthly performance tracking highlighting promotional campaigns (618 Gala & Double 11)</div>
+            </div>
+          </div>
+          <div class="chart-body" id="chart_monthly_trend" style="height: 380px;"></div>
+          <div class="chart-footer">
+            <span>Data source: huagou_mall_synthetic_ecommerce.csv</span>
+            <div class="chart-legend-custom">
+              <span class="legend-item"><span class="legend-color" style="background:#0EA5E9;"></span> Revenue</span>
+              <span class="legend-item"><span class="legend-color" style="background:#10B981;"></span> Gross Profit</span>
+              <span class="legend-item"><span class="legend-color" style="background:#F59E0B;"></span> Campaign Peak</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Rankings & Channel Breakdown -->
+      <div class="charts-grid-2">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-area">
+              <h3>🏆 Product Category Revenue & Profit Rankings</h3>
+              <div class="chart-subtitle">Digital Electronics dominates with 43.1% share of total revenue</div>
+            </div>
+          </div>
+          <div class="chart-body" id="chart_category_rank" style="height: 380px;"></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-area">
+              <h3>📱 Revenue Distribution by Sales Channel</h3>
+              <div class="chart-subtitle">Mobile App, Mini Program, Website & Marketplace channel mix</div>
+            </div>
+          </div>
+          <div class="chart-body" id="chart_channel_donut" style="height: 380px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: DISTRIBUTIONS (CHARTS 1 - 4) -->
+    <section class="tab-content" id="tab-distribution">
+      <!-- Chart 1 & Chart 2: Histogram & KDE -->
+      <div class="charts-grid-2">
+        <!-- Chart 1: Revenue Histogram -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-area">
+              <h3>Chart 1: Completed-Line Revenue Histogram</h3>
+              <div class="chart-subtitle">71 logarithmically spaced bins (Freedman–Diaconis rule on log10 CNY)</div>
+            </div>
+            <div class="chart-actions">
+              <button class="btn-pill hist-mode-btn active" data-mode="share">Share (%)</button>
+              <button class="btn-pill hist-mode-btn" data-mode="count">Count (n)</button>
+            </div>
+          </div>
+          <div class="chart-body" id="chart1_hist" style="height: 400px;"></div>
+          <div class="chart-footer">
+            <span>Report: <code>output/reports/revenue_histogram_report.md</code></span>
+            <span>Median: ¥163.84 · Mean: ¥369.43 · Max: ¥7,105</span>
+          </div>
+        </div>
+
+        <!-- Chart 2: Revenue KDE -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-area">
+              <h3>Chart 2: Completed-Line Revenue KDE</h3>
+              <div class="chart-subtitle">Continuous density estimation in log10 space via Silverman's rule</div>
+            </div>
+          </div>
+          <div class="chart-body" id="chart2_kde" style="height: 400px;"></div>
+          <div class="chart-footer">
+            <span>Report: <code>output/reports/revenue_kde_report.md</code></span>
+            <span>Bandwidth: 0.088 log10 units · Strictly positive support</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart 3 & Chart 4: Category Box Plot & Violin Plot -->
+      <div class="charts-grid-2">
+        <!-- Chart 3: Category Box Plot -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-area">
+              <h3>Chart 3: Revenue by Category — Box Plot</h3>
+              <div class="chart-subtitle">Log-scaled CNY axis comparing median, quartiles & 1.5×IQR fences</div>
+            </div>
+          </div>
+          <div class="chart-body" id="chart3_box" style="height: 450px;"></div>
+          <div class="chart-footer">
+            <span>Report: <code>output/reports/category_revenue_boxplot_report.md</code></span>
+            <span>Categories ordered descending by median revenue</span>
+          </div>
+        </div>
+
+        <!-- Chart 4: Category Violin Plot -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-area">
+              <h3>Chart 4: Revenue by Category — Violin Plot</h3>
+              <div class="chart-subtitle">Reveals multimodality, price clustering & density shapes across categories</div>
+            </div>
+          </div>
+          <div class="chart-body" id="chart4_violin" style="height: 450px;"></div>
+          <div class="chart-footer">
+            <span>Report: <code>output/reports/category_revenue_violin_report.md</code></span>
+            <span>Equal-area scaling per category</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: RELATIONSHIPS & PROFIT (CHARTS 5, 6, 7) -->
+    <section class="tab-content" id="tab-relationships">
+      <!-- Chart 5 & Chart 7: Scatter & Bubbles -->
+      <div class="charts-grid-2">
+        <!-- Chart 5: Discount vs Profit Scatter -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-area">
+              <h3>Chart 5: Discount vs Profit Scatter Plot</h3>
+              <div class="chart-subtitle">Symlog profit axis exposing the >30% discount margin erosion zone</div>
+            </div>
+          </div>
+          <div class="chart-body" id="chart5_scatter" style="height: 420px;"></div>
+          <div class="chart-footer">
+            <span>Report: <code>output/reports/discount_vs_profit_scatter_report.md</code></span>
+            <span>Amber curve: Median profit in 5% discount bins · ρ = -0.409</span>
+          </div>
+        </div>
+
+        <!-- Chart 7: Price vs Profit Bubbles -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-area">
+              <h3>Chart 7: Unit Price vs Profit Bubble Plot</h3>
+              <div class="chart-subtitle">Bubble area represents Quantity (1–5 units) on log price and symlog profit</div>
+            </div>
+          </div>
+          <div class="chart-body" id="chart7_bubbles" style="height: 420px;"></div>
+          <div class="chart-footer">
+            <span>Report: <code>output/reports/price_profit_quantity_bubbles_report.md</code></span>
+            <span>Spearman ρ: +0.699 · Decile medians climb ¥5.31 → ¥308.37</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart 6: Multivariate Pair Plot -->
+      <div class="charts-grid-1">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-area">
+              <h3>Chart 6: Price, Quantity, Revenue & Profit Pairwise Correlation Matrix</h3>
+              <div class="chart-subtitle">Spearman rank correlations across the 4 primary numeric drivers of transaction economics</div>
+            </div>
+          </div>
+          <div class="chart-body" id="chart6_pairplot" style="height: 420px;"></div>
+          <div class="chart-footer">
+            <span>Report: <code>output/reports/pairplot_report.md</code></span>
+            <span>Key finding: Unit Price and Quantity are completely independent (ρ = +0.004)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: COMPOSITION & HEATMAP (CHARTS 8, 9) -->
+    <section class="tab-content" id="tab-composition">
+      <!-- Chart 8: Treemap -->
+      <div class="charts-grid-1">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-area">
+              <h3>Chart 8: Category → Subcategory Revenue Treemap</h3>
+              <div class="chart-subtitle">Two-level hierarchical breakdown: 8 parent categories partitioned into 32 subcategories</div>
+            </div>
+          </div>
+          <div class="chart-body" id="chart8_treemap" style="height: 520px;"></div>
+          <div class="chart-footer">
+            <span>Report: <code>output/reports/category_revenue_treemap_report.md</code></span>
+            <span>Click any parent category to zoom into its subcategories</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart 9: Heatmap -->
+      <div class="charts-grid-1">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-area">
+              <h3>Chart 9: Category × Month Revenue Heatmap</h3>
+              <div class="chart-subtitle">8 Categories × 12 Calendar Months (2024 & 2025 combined) showing seasonal campaign peaks</div>
+            </div>
+          </div>
+          <div class="chart-body" id="chart9_heatmap" style="height: 480px;"></div>
+          <div class="chart-footer">
+            <span>Report: <code>output/reports/category_month_revenue_heatmap_report.md</code></span>
+            <span>June 618 accounts for 13.87% and November Double 11 accounts for 13.79% of total mall revenue</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: STRATEGIC INSIGHTS & REPORTS -->
+    <section class="tab-content" id="tab-insights">
+      <!-- Key Executive Takeaway Cards -->
+      <div class="insights-grid">
+        <!-- Insight 1: Discount Governance -->
+        <div class="insight-card rose">
+          <div class="card-border-top"></div>
+          <div class="insight-header">
+            <div class="insight-icon-box">🛑</div>
+            <div class="insight-title">
+              <h4>Discount Governance Cliff</h4>
+              <div class="insight-tag">Margin Protection</div>
+            </div>
+          </div>
+          <div class="insight-body">
+            <p>Discounts above 30% trigger rapid margin degradation. 4,037 completed order lines (8.18%) generate negative gross margin, wiping out over ¥280K in potential earnings.</p>
+            <div class="stat-callout-row">
+              <span class="stat-label">Loss-Making Lines</span>
+              <span class="stat-number">4,037 (8.18%)</span>
+            </div>
+            <div class="stat-callout-row">
+              <span class="stat-label">Max Discount Observed</span>
+              <span class="stat-number">64.8%</span>
+            </div>
+            <div class="insight-recommendation">
+              <strong>Recommendation:</strong>
+              Implement automated platform guardrails capping promotional discounts at 30% unless explicitly subsidized by merchants.
+            </div>
+          </div>
+        </div>
+
+        <!-- Insight 2: Campaign Seasonality -->
+        <div class="insight-card amber">
+          <div class="card-border-top"></div>
+          <div class="insight-header">
+            <div class="insight-icon-box">⚡</div>
+            <div class="insight-title">
+              <h4>The 618 & Double 11 Duopoly</h4>
+              <div class="insight-tag">Commercial Seasonality</div>
+            </div>
+          </div>
+          <div class="insight-body">
+            <p>June (¥2.53M) and November (¥2.51M) generate over 27.6% of annual turnover. Daily revenue during these two peak months spikes from ¥21K/day to over ¥42K/day (1.92× baseline).</p>
+            <div class="stat-callout-row">
+              <span class="stat-label">June + Nov Share</span>
+              <span class="stat-number">27.66%</span>
+            </div>
+            <div class="stat-callout-row">
+              <span class="stat-label">Daily Revenue Index</span>
+              <span class="stat-number">1.92× Baseline</span>
+            </div>
+            <div class="insight-recommendation">
+              <strong>Recommendation:</strong>
+              Concentrate warehouse logistics, inventory pre-orders, and ad spend exclusively around the 4 weeks leading up to June 18 and November 11.
+            </div>
+          </div>
+        </div>
+
+        <!-- Insight 3: Category Engine -->
+        <div class="insight-card teal">
+          <div class="card-border-top"></div>
+          <div class="insight-header">
+            <div class="insight-icon-box">💻</div>
+            <div class="insight-title">
+              <h4>Digital Electronics Dominance</h4>
+              <div class="insight-tag">Category Concentration</div>
+            </div>
+          </div>
+          <div class="insight-body">
+            <p>Digital Electronics produces ¥7.85M (43.09% of all revenue) from 31.38% of lines, driven by high basket items in Computer Accessories (¥2.74M) and Audio Equipment (¥2.33M).</p>
+            <div class="stat-callout-row">
+              <span class="stat-label">Electronics Revenue</span>
+              <span class="stat-number">¥7,852,160</span>
+            </div>
+            <div class="stat-callout-row">
+              <span class="stat-label">Revenue / Line</span>
+              <span class="stat-number">¥507.34</span>
+            </div>
+            <div class="insight-recommendation">
+              <strong>Recommendation:</strong>
+              Cross-sell high-margin accessories (Home & Living, Apparel) alongside high-ticket Digital Electronics baskets to elevate basket margins.
+            </div>
+          </div>
+        </div>
+
+        <!-- Insight 4: Price & Volume Decoupling -->
+        <div class="insight-card emerald">
+          <div class="card-border-top"></div>
+          <div class="insight-header">
+            <div class="insight-icon-box">📊</div>
+            <div class="insight-title">
+              <h4>Price & Quantity Independence</h4>
+              <div class="insight-tag">Pricing Architecture</div>
+            </div>
+          </div>
+          <div class="insight-body">
+            <p>Customers purchase similar quantities (1–5 units) regardless of unit price (Spearman ρ = +0.004). Volume does not decline as price ascends.</p>
+            <div class="stat-callout-row">
+              <span class="stat-label">Price vs Qty Correlation</span>
+              <span class="stat-number">ρ = +0.004</span>
+            </div>
+            <div class="stat-callout-row">
+              <span class="stat-label">Price Decile Profit Range</span>
+              <span class="stat-number">¥5.31 → ¥308.37</span>
+            </div>
+            <div class="insight-recommendation">
+              <strong>Recommendation:</strong>
+              Do not rely on low-price loss leaders to stimulate quantity; focus on premium bundles where unit economics remain strongly positive.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Master Reports Directory Table -->
+      <div class="reports-section">
+        <div class="reports-header">
+          <h3>📑 Complete Analytical Reports Index</h3>
+          <span class="meta-badge">9 Research Documents</span>
+        </div>
+        <div class="reports-table-container">
+          <table class="reports-table">
+            <thead>
+              <tr>
+                <th>Chart & Code</th>
+                <th>Report Name</th>
+                <th>Population Analyzed</th>
+                <th>Primary Statistical Encoding</th>
+                <th>Key Strategic Takeaway</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Chart 1</strong> · <code>plot_revenue_histogram.py</code></td>
+                <td class="report-title">Completed-Line Revenue Histogram</td>
+                <td>49,327 lines (Realized)</td>
+                <td>71 log-spaced bins, Freedman–Diaconis rule</td>
+                <td>77% of lines under ¥500; median ¥163.84 vs mean ¥369.43</td>
+              </tr>
+              <tr>
+                <td><strong>Chart 2</strong> · <code>plot_revenue_kde.py</code></td>
+                <td class="report-title">Completed-Line Revenue KDE</td>
+                <td>49,327 lines (Realized)</td>
+                <td>Log-space Gaussian KDE (Silverman bandwidth)</td>
+                <td>Strictly unimodal log revenue; no low-price secondary artifact</td>
+              </tr>
+              <tr>
+                <td><strong>Chart 3</strong> · <code>plot_category_revenue_box.py</code></td>
+                <td class="report-title">Revenue by Product Category — Box Plot</td>
+                <td>49,327 lines (8 Categories)</td>
+                <td>Log-scaled CNY axis, 1.5×IQR fences</td>
+                <td>Sports (¥251) and Electronics (¥228) lead medians; Books lowest (¥49)</td>
+              </tr>
+              <tr>
+                <td><strong>Chart 4</strong> · <code>plot_category_revenue_violin.py</code></td>
+                <td class="report-title">Revenue by Product Category — Violin Plot</td>
+                <td>49,327 lines (8 Categories)</td>
+                <td>Log10 density profiles, equal area scaling</td>
+                <td>Apparel shows secondary premium peak at ¥726 (+252% vs median)</td>
+              </tr>
+              <tr>
+                <td><strong>Chart 5</strong> · <code>plot_discount_vs_profit_scatter.py</code></td>
+                <td class="report-title">Discount vs Profit — Scatter Plot</td>
+                <td>49,327 lines (Realized)</td>
+                <td>Symlog profit axis, 5% binned medians</td>
+                <td>Monotonic profit decline (ρ = -0.409); sharp loss cliff beyond 30% discount</td>
+              </tr>
+              <tr>
+                <td><strong>Chart 6</strong> · <code>plot_pairplot.py</code></td>
+                <td class="report-title">Pairwise Correlation Matrix & Distributions</td>
+                <td>49,327 lines (Realized)</td>
+                <td>4×4 transformed matrix, Spearman rank ρ</td>
+                <td>Unit price & quantity independent (ρ = +0.004); price drives revenue (ρ = +0.940)</td>
+              </tr>
+              <tr>
+                <td><strong>Chart 7</strong> · <code>plot_price_profit_bubbles.py</code></td>
+                <td class="report-title">Unit Price vs Profit Bubble Plot</td>
+                <td>49,327 lines (Realized)</td>
+                <td>Bubble area = quantity (1–5), log price, symlog profit</td>
+                <td>Profit scales strongly with unit price (ρ = +0.699); quantity multiplies gains</td>
+              </tr>
+              <tr>
+                <td><strong>Chart 8</strong> · <code>plot_category_treemap.py</code></td>
+                <td class="report-title">Category → Subcategory Revenue Treemap</td>
+                <td>49,327 lines (32 Subcats)</td>
+                <td>Two-level hierarchical squarified treemap</td>
+                <td>Electronics accounts for 43.09%; Computer Accessories is #1 subcategory (¥2.74M)</td>
+              </tr>
+              <tr>
+                <td><strong>Chart 9</strong> · <code>plot_category_month_heatmap.py</code></td>
+                <td class="report-title">Category × Month Revenue Heatmap</td>
+                <td>49,327 lines (96 Cells)</td>
+                <td>Sequential teal ramp, calendar month totals</td>
+                <td>618 (June) & Double 11 (Nov) drive 27.66% of two-year mall turnover</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>HuaGou Mall E-Commerce Data Analysis Portfolio Project · Built with Plotly.js, CSS Glassmorphism & Vanilla JavaScript · All statistical metrics verified against project reports</p>
+  </footer>
+
+  <!-- Load Data and Chart Controllers -->
+  <script src="data.js"></script>
+  <script src="static/js/charts.js"></script>
+  <script src="static/js/app.js"></script>
+
+</body>
+</html>
